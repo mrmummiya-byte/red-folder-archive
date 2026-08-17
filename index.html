@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АРХИВ-7 // СЕГМЕНТ НЕЗАЩИЩЁН</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        
+        :root {
+            --term-green: #33ff33;
+            --term-dim: #1a801a;
+            --alert-red: #ff3333;
+            --amber: #ffb000;
+            --bg: #0a0a0a;
+            --scan: rgba(18, 16, 16, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--term-green);
+            font-family: 'VT323', 'Courier New', monospace;
+            font-size: 18px;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* CRT эффект */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            animation: scanline 8s linear infinite;
+        }
+        
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: rgba(18, 16, 16, 0.1);
+            opacity: 0;
+            z-index: 999;
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.02; }
+            50% { opacity: 0.05; }
+            100% { opacity: 0.02; }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        .glitch {
+            animation: glitch 0.3s infinite;
+            display: inline-block;
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        .redacted {
+            background: var(--term-green);
+            color: var(--term-green);
+            padding: 0 4px;
+            user-select: none;
+        }
+        
+        .redacted:hover {
+            background: var(--alert-red);
+            color: var(--bg);
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            border: 2px solid var(--term-dim);
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        header::before {
+            content: "[ ДОСТУП ОГРАНИЧЕН ]";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--bg);
+            padding: 0 10px;
+            color: var(--alert-red);
+            font-size: 14px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--term-dim);
+            border-top: 1px solid var(--term-dim);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        /* Navigation */
+        nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        nav button {
+            background: transparent;
+            border: 1px solid var(--term-dim);
+            color: var(--term-green);
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        nav button:hover, nav button.active {
+            background: var(--term-green);
+            color: var(--bg);
+            border-color: var(--term-green);
+        }
+        
+        /* Sections */
+        .section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .entry {
+            border-left: 2px solid var(--term-dim);
+            padding-left: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .entry::before {
+            content: ">";
+            position: absolute;
+            left: -10px;
+            color: var(--term-green);
+        }
+        
+        .entry-date {
+            color: var(--amber);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .entry-title {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: var(--term-green);
+        }
+        
+        .entry-text {
+            color: var(--term-dim);
+        }
+        
+        .entry-text b {
+            color: var(--term-green);
+        }
+        
+        /* Evidence cards */
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .evidence-card {
+            border: 1px solid var(--term-dim);
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .evidence-card::before {
+            content: "SCP";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            color: var(--term-dim);
+        }
+        
+        .evidence-card:hover {
+            border-color: var(--term-green);
+            box-shadow: 0 0 10px rgba(51, 255, 51, 0.2);
+        }
+        
+        .evidence-img {
+            width: 100%;
+            height: 150px;
+            background: #111;
+            border: 1px solid var(--term-dim);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--term-dim);
+            font-size: 12px;
+        }
+        
+        .evidence-id {
+            color: var(--alert-red);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .evidence-name {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .evidence-status {
+            font-size: 12px;
+            color: var(--amber);
+        }
+        
+        /* Dossier */
+        .dossier-item {
+            border: 1px solid var(--term-dim);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .dossier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--term-dim);
+            padding-bottom: 10px;
+        }
+        
+        .dossier-class {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid;
+        }
+        
+        .class-safe { color: #00ff00; border-color: #00ff00; }
+        .class-euclid { color: #ffaa00; border-color: #ffaa00; }
+        .class-keter { color: #ff0000; border-color: #ff0000; }
+        
+        .dossier-img {
+            width: 100%;
+            max-height: 300px;
+            background: #111;
+            border: 1px solid var(--term-dim);
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--term-dim);
+        }
+        
+        /* Terminal input */
+        .terminal {
+            border: 1px solid var(--term-dim);
+            padding: 15px;
+            margin-top: 30px;
+            background: #050505;
+        }
+        
+        .terminal-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .terminal-prompt {
+            color: var(--term-green);
+        }
+        
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: var(--term-green);
+            font-family: inherit;
+            font-size: 18px;
+            outline: none;
+            width: 100%;
+            caret-color: var(--term-green);
+        }
+        
+        /* Hidden message */
+        .hidden-msg {
+            display: none;
+            border: 1px dashed var(--alert-red);
+            padding: 20px;
+            margin-top: 20px;
+            color: var(--alert-red);
+        }
+        
+        .hidden-msg.show {
+            display: block;
+            animation: glitch 0.5s;
+        }
+        
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--term-dim);
+            font-size: 12px;
+            color: var(--term-dim);
+            text-align: center;
+        }
+        
+        /* Mobile */
+        @media (max-width: 600px) {
+            h1 { font-size: 24px; }
+            .evidence-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--term-dim);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--term-green);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>АРХИВ-7 <span class="blink">_</span></h1>
+        <p>СЕГМЕНТ НЕЗАЩИЩЁН // ПОДКЛЮЧЕНИЕ ЧЕРЕЗ ПРОКСИ</p>
+        <div class="status-bar">
+            <span>ПОЛЬЗОВАТЕЛЬ: <span class="redacted">████████</span></span>
+            <span>ДОПУСК: <span style="color: var(--alert-red)">НЕТ ДАННЫХ</span></span>
+            <span>СТАТУС: <span class="glitch">НАРУШЕН</span></span>
+        </div>
+    </header>
+
+    <nav>
+        <button class="active" onclick="showSection('diary')">ДНЕВНИК</button>
+        <button onclick="showSection('evidence')">УЛИКИ</button>
+        <button onclick="showSection('dossier')">ДОСЬЕ</button>
+        <button onclick="showSection('transmission')">ПЕРЕДАЧА</button>
+    </nav>
+
+    <!-- ДНЕВНИК -->
+    <div id="diary" class="section active">
+        <div class="entry">
+            <div class="entry-date">[ ДЕНЬ 001 // 17.08.2026 ]</div>
+            <div class="entry-title">ПЕРВАЯ УТЕЧКА</div>
+            <div class="entry-text">
+                Получил доступ к сегменту <b>Архив-7</b>. Не знаю, кто ведёт эту сеть, но данные совпадают с тем, что я помню из <span class="redacted">██████</span>. 
+                <br><br>
+                Первый объект — <b>SCP-500</b>. Одна таблетка потеряна. Я нашёл новость о чудесном исцелении в городской больнице. Совпадение? В Фонде не верю в совпадения.
+                <br><br>
+                На таблетке микротекст. Три символа: <b>O5-</b>. Третий стёрт.
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-date">[ ДЕНЬ 003 // 19.08.2026 ]</div>
+            <div class="entry-title">ГЛАЗАСТИК</div>
+            <div class="entry-text">
+                Второй файл — потеря аномалии класса Safe. <b>SCP-131</b>. Оранжевая сфера с глазом. 
+                <br><br>
+                Нашёл CCTV из супермаркета. Он ползает за покупателями. Не агрессивен. Просто... наблюдает.
+                <br><br>
+                Странность: после просмотра видео заметил, что книга на полке сдвинута. Я живу один. Дверь заперта.
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-date">[ ДЕНЬ 007 // 23.08.2026 ]</div>
+            <div class="entry-title">ТОСТЕР</div>
+            <div class="entry-text">
+                <b>SCP-426</b>. Я — тостер. Пишу это и понимаю, что уже говорю о нём в первом лице. Проверил себя на амнезиак — чисто. Это не химия. Это свойство объекта.
+                <br><br>
+                Нашёл объявление: «Продаю тостер. Не говорю о нём в третьем лице». Продавец пропал.
+            </div>
+        </div>
+
+        <div class="entry" style="opacity: 0.4;">
+            <div class="entry-date">[ ДЕНЬ 012 // ЗАБЛОКИРОВАНО ]</div>
+            <div class="entry-title">███████████</div>
+            <div class="entry-text">
+                Данные повреждены. Ожидайте обновления...
+            </div>
+        </div>
+    </div>
+
+    <!-- УЛИКИ -->
+    <div id="evidence" class="section">
+        <div class="evidence-grid">
+            <div class="evidence-card">
+                <div class="evidence-img">[ФОТО SCP-500]</div>
+                <div class="evidence-id">SCP-500</div>
+                <div class="evidence-name">Панцирь</div>
+                <div class="evidence-status">СТАТУС: В КОЛЛЕКЦИИ</div>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="evidence-img">[ФОТО SCP-131]</div>
+                <div class="evidence-id">SCP-131</div>
+                <div class="evidence-name">Глазастик</div>
+                <div class="evidence-status">СТАТУС: В КОЛЛЕКЦИИ</div>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="evidence-img">[ФОТО SCP-426]</div>
+                <div class="evidence-id">SCP-426</div>
+                <div class="evidence-name">Тостер</div>
+                <div class="evidence-status">СТАТУС: В КОЛЛЕКЦИИ</div>
+            </div>
+            
+            <div class="evidence-card" style="opacity: 0.3;">
+                <div class="evidence-img">[НЕТ ДАННЫХ]</div>
+                <div class="evidence-id">SCP-???</div>
+                <div class="evidence-name">████████</div>
+                <div class="evidence-status">СТАТУС: ОЖИДАЕТСЯ</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ДОСЬЕ -->
+    <div id="dossier" class="section">
+        <div class="dossier-item">
+            <div class="dossier-header">
+                <span>SCP-500</span>
+                <span class="dossier-class class-safe">SAFE</span>
+            </div>
+            <div class="dossier-img">[AI-ВИЗУАЛИЗАЦИЯ]</div>
+            <p>
+                <b>Описание:</b> Красные таблетки, способные излечить любые болезни. 
+                <br><br>
+                <b>Примечание:</b> Одна таблетка утеряна из Зоны <span class="redacted">██</span>. 
+                Местонахождение не установлено. Предположительно — <span class="redacted">██████████</span>.
+            </p>
+        </div>
+
+        <div class="dossier-item">
+            <div class="dossier-header">
+                <span>SCP-131</span>
+                <span class="dossier-class class-safe">SAFE</span>
+            </div>
+            <div class="dossier-img">[AI-ВИЗУАЛИЗАЦИЯ]</div>
+            <p>
+                <b>Описание:</b> Органические существа в форме слезных желез. Обозначаются как 131-A и 131-B.
+                <br><br>
+                <b>Примечание:</b> Объект 131-A утерян во время транспортировки. Последняя фиксация — супермаркет <span class="redacted">███████</span>.
+            </p>
+        </div>
+
+        <div class="dossier-item">
+            <div class="dossier-header">
+                <span>SCP-426</span>
+                <span class="dossier-class class-euclid">EUCLID</span>
+            </div>
+            <div class="dossier-img">[AI-ВИЗУАЛИЗАЦИЯ]</div>
+            <p>
+                <b>Описание:</b> Я — тостер. Когда любое существо описывает меня в третьем лице, оно временно становится мной.
+                <br><br>
+                <b>Предупреждение:</b> Не упоминайте объект напрямую. Используйте кодовое обозначение.
+            </p>
+        </div>
+    </div>
+
+    <!-- ПЕРЕДАЧА -->
+    <div id="transmission" class="section">
+        <p style="color: var(--term-dim); margin-bottom: 20px;">
+            // НЕЗАВЕРШЁННАЯ ПЕРЕДАЧА. ТРЕБУЕТСЯ КЛЮЧ ДОСТУПА.
+        </p>
+        
+        <div class="terminal">
+            <div class="terminal-line">
+                <span class="terminal-prompt">archive7@scp:~$</span>
+                <input type="text" class="terminal-input" id="cmdInput" placeholder="Введите команду..." autocomplete="off">
+            </div>
+        </div>
+        
+        <div id="hiddenMessage" class="hidden-msg">
+            <p><b>[ВХОД ВЫПОЛНЕН // УРОВЕНЬ: O5]</b></p>
+            <br>
+            <p>Ты ищешь Совет. Но Совет уже нашёл тебя.</p>
+            <p>Каждая улика — это фрагмент. Собери их все.</p>
+            <p>О5-7 ждёт.</p>
+            <br>
+            <p style="font-size: 12px; color: var(--term-dim);">
+                КООРДИНАТЫ: <span class="redacted">██.████, ██.████</span>
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <p>SCP Foundation содержимое распространяется по лицензии CC BY-SA 3.0</p>
+        <p>Агентство «Красная Папка» — независимый проект</p>
+        <p style="margin-top: 10px; font-size: 10px;">
+            СЕАНС БУДЕТ ЗАВЕРШЁН ЧЕРЕЗ <span id="timer">00:00</span>
+        </p>
+    </footer>
+</div>
+
+<script>
+    // Переключение разделов
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // Терминал
+    const input = document.getElementById('cmdInput');
+    const hiddenMsg = document.getElementById('hiddenMessage');
+    
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const cmd = this.value.toLowerCase().trim();
+            
+            if (cmd === 'o5-7' || cmd === 'o5' || cmd === 'совет') {
+                hiddenMsg.classList.add('show');
+                this.value = '';
+            } else if (cmd === 'help') {
+                alert('ДОСТУПНЫЕ КОМАНДЫ:\n- help\n- o5-7\n- clear');
+                this.value = '';
+            } else if (cmd === 'clear') {
+                hiddenMsg.classList.remove('show');
+                this.value = '';
+            } else {
+                this.value = '';
+            }
+        }
+    });
+
+    // Таймер обратного отсчёта
+    let time = 300;
+    setInterval(() => {
+        time--;
+        const m = Math.floor(time / 60).toString().padStart(2, '0');
+        const s = (time % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${m}:${s}`;
+        if (time <= 0) time = 300;
+    }, 1000);
+
+    // Консоль-прикол для тех, кто откроет F12
+    console.log('%c СЕКТОР О5 ', 'background: #ff0000; color: #000; font-size: 20px; font-weight: bold;');
+    console.log('%cВы не должны были сюда попадать. Закройте консоль и забудьте увиденное.', 'color: #33ff33; font-family: monospace;');
+    console.log('%cКоординаты следующей встречи: 55.7558, 37.6173', 'color: #ff3333; font-family: monospace;');
+</script>
+
+</body>
+</html>
